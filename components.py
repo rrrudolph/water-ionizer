@@ -7,7 +7,8 @@ class FlowSensor:
         self.count = 0 
         self.off_time = 0
 
-        sensor.irq(trigger=Pin.IRQ_RISING, handler=self.increment)
+        # I think putting this inside a class so that self has to be referenced makes it break
+        # sensor.irq(trigger=Pin.IRQ_RISING, handler=self.increment)
 
         try: 
             with open("flow.txt", 'r') as f:
@@ -31,10 +32,11 @@ class FlowSensor:
 
 
 class Ionizer:
-    def __init__(self, relays, pwm, pot):
+    def __init__(self, relays, pwm, pot, led):
         self.relays = relays
         self.pwm = pwm
         self.pot = pot
+        self.led = led
         self.max_power = 65536 * 0.5
         self.min_power = 65536 * 0.1
 
@@ -48,8 +50,10 @@ class Ionizer:
 
         power = self.map_range(self.pot.read_u16() * 3.3 / 65536) 
         self.pwm.duty_u16(power)
+        self.led.duty_u16(2500)
     
     def stop(self):
+        self.led.duty_u16(0)
         self.pwm.duty_u16(0)
         self.relays(0)
 
